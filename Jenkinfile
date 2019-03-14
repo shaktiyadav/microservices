@@ -1,0 +1,45 @@
+pipeline {
+    agent { label 'master' }
+    stages {
+        stage('Pull') {
+          
+            steps {
+                checkout([$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'b15d74a0-c8d0-4658-8c47-6352d4a95b85', url: 'https://cmb25july@bitbucket.org/cmb25july/devops.git']]])
+                
+                echo "Git Code pull!"
+            }
+        }
+          stage('Build') {
+            steps {
+                
+                 sh 'mvn clean install' 
+                echo "Maven clean and install successfully.."
+            }
+        }
+          stage('Unit Test') {
+            steps {
+                 sh 'mvn test' 
+                 
+                echo "Test Case Execution Done"
+            }
+        }
+          stage('Report') {
+           steps {
+           
+            echo "Static code analysis done...!"
+            }
+        }
+          stage('Deployment') {
+            steps {
+                sh 'mvn package'
+                #Backup 
+                sh 'mkdir archive'
+                sh 'cp -v /tmp/server/apache-tomcat-8.5.38/webapps/*.war  archive'
+                sh 'cd /tmp/server/apache-tomcat-8.5.38/bin'
+                sh 'sh shutdown.sh'
+                sh 'pwd'
+                echo "Deployment Done..!"
+            }
+        }
+    }
+}
